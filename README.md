@@ -230,7 +230,7 @@ Find what's using port 443: `ss -tlnp | grep 443`
 
 No permanent changes are made to your camera. You're back to stock in 30 seconds.
 
-## How It Works
+## Technical Overview
 
 fujidrop emulates these Frame.io C2C API endpoints:
 
