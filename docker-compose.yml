@@ -1,15 +1,18 @@
 services:
   fujidrop:
-    build: .
+    image: ghcr.io/camerongarrett/fujidrop:latest
+    # build: .  # uncomment to build from source instead
     container_name: fujidrop
     ports:
       - "443:443"
     volumes:
-      - ./certs:/certs
-      - ./uploads:/uploads
+      - ${APPDATA_PATH:-./certs}:/certs
+      - ${UPLOAD_PATH:-./uploads}:/uploads
     environment:
       - NAS_IP=${NAS_IP:-192.168.0.100}
       - UPLOAD_DIR=/uploads
       - CERT_DIR=/certs
       - LOG_LEVEL=${LOG_LEVEL:-info}
     restart: unless-stopped
+    labels:
+      - net.unraid.docker.icon=https://raw.githubusercontent.com/CameronGarrett/fujidrop/main/icon.png

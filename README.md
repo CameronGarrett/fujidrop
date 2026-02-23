@@ -55,12 +55,15 @@ cd fujidrop
 cp .env.example .env
 ```
 
-Edit `.env` and set `NAS_IP` to your server's local IP address:
+Edit `.env` and set your NAS IP and volume paths:
 
 ```
 NAS_IP=192.168.0.100
+APPDATA_PATH=/mnt/user/appdata/fujidrop    # certs + config (Unraid)
+UPLOAD_PATH=/mnt/user/data/camera-uploads  # photos land here (Unraid)
 ```
 
+For non-Unraid setups, the defaults (`./certs` and `./uploads`) work fine.
 Port 443 must be available on the host (the camera connects to standard HTTPS).
 
 ### 2. Build and Start
@@ -165,14 +168,17 @@ certificate is also available for download at `https://YOUR_NAS_IP/ca.crt`.
 ## Unraid Deployment
 
 1. Copy this project to `/boot/config/plugins/compose.manager/projects/fujidrop/`
-2. Edit the `.env` file with your NAS IP
-3. In the Unraid UI: **Docker** > **Compose** > **fujidrop** > **Compose Up**
-4. Map the uploads volume to your preferred share, e.g.:
-   ```yaml
-   volumes:
-     - /mnt/user/data/fujidrop/certs:/certs
-     - /mnt/user/data/fujidrop/uploads:/uploads
+2. Create `.env` from the example and set your values:
    ```
+   NAS_IP=192.168.0.100
+   APPDATA_PATH=/mnt/user/appdata/fujidrop
+   UPLOAD_PATH=/mnt/user/data/camera-uploads
+   ```
+3. In the Unraid UI: **Docker** > **Compose** > **fujidrop** > **Compose Up**
+
+Certs live on the NVMe cache (appdata), uploads go to the array (parity-protected).
+DIUN will automatically pick up image updates since the compose file uses
+`ghcr.io/camerongarrett/fujidrop:latest`.
 
 ## Troubleshooting
 
