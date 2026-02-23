@@ -18,7 +18,8 @@ if [ ! -f "$CERT_DIR/ca.crt" ] || [ ! -f "$CERT_DIR/server.crt" ]; then
 fi
 
 echo "Starting fujidrop server..."
-echo "  HTTPS: 0.0.0.0:443  (camera connects here)"
+echo "  Camera API (HTTPS): port 443"
+echo "  Dashboard (HTTP):   port ${DASHBOARD_PORT:-3000}"
 echo "  Uploads: ${UPLOAD_DIR:-/uploads}"
 echo ""
 

@@ -14,6 +14,6 @@ COPY scripts/ scripts/
 RUN chmod +x scripts/*.sh
 
 VOLUME ["/certs", "/uploads"]
-EXPOSE 443
+EXPOSE 443 3000
 
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]

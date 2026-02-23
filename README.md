@@ -158,11 +158,14 @@ card; fujidrop receives copies.
 
 ## Dashboard
 
-Access the dashboard at `https://YOUR_NAS_IP/` (accept the self-signed
-certificate warning, or add the CA cert to your system's trust store).
+Access the dashboard at `http://YOUR_NAS_IP:3000/`. This is plain HTTP on
+a separate port — no certificate warning in your browser.
 
 Shows server status, camera pairing state, and recent uploads. The CA
-certificate is also available for download at `https://YOUR_NAS_IP/ca.crt`.
+certificate is also available for download at `http://YOUR_NAS_IP:3000/ca.crt`.
+
+The dashboard is also available on port 443 (`https://YOUR_NAS_IP/`) if you
+prefer, but you'll need to accept the self-signed certificate warning.
 
 ## Unraid Deployment
 
@@ -202,8 +205,22 @@ DIUN will automatically pick up image updates since the compose file uses
 - Try renaming `ca.crt` to `ca.pem` — some firmware versions prefer `.pem`
 
 **Port 443 already in use**
-- On Unraid: change the management HTTPS port in Settings > Management Access
-- Find what's using it: `ss -tlnp | grep 443`
+
+The camera connects to `api.frame.io` on port 443 (standard HTTPS) — this
+cannot be changed. If another service on your server already uses port 443,
+you have a few options:
+
+- **Move the other service** to a different port. For example, on Unraid,
+  change the management HTTPS port in Settings > Management Access to
+  something like 3443.
+- **Reverse proxy with SNI passthrough**: if you run a reverse proxy (Nginx
+  Proxy Manager, Traefik, Caddy), configure it to pass TLS connections for
+  SNI hostname `api.frame.io` through to fujidrop on an internal port,
+  while handling all other traffic normally.
+- **Dedicated IP via Docker macvlan**: give the fujidrop container its own
+  IP address on your LAN so it gets its own port 443 without conflicting.
+
+Find what's using port 443: `ss -tlnp | grep 443`
 
 ## Removing / Reverting
 

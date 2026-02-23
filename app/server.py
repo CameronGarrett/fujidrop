@@ -11,12 +11,14 @@ import uuid
 import shutil
 import random
 import logging
+import asyncio
 import html as html_mod
 from datetime import datetime, timezone
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, Response
+import uvicorn
+from fastapi import FastAPI, APIRouter, Request, Response
 from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 
 # ---------------------------------------------------------------------------
@@ -26,6 +28,7 @@ from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 UPLOAD_DIR = Path(os.getenv("UPLOAD_DIR", "/uploads"))
 CERT_DIR = Path(os.getenv("CERT_DIR", "/certs"))
 LOG_LEVEL = os.getenv("LOG_LEVEL", "info").upper()
+DASHBOARD_PORT = int(os.getenv("DASHBOARD_PORT", "3000"))
 
 logging.basicConfig(
     level=LOG_LEVEL,
@@ -55,18 +58,36 @@ async def lifespan(app: FastAPI):
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     _cleanup_stale_parts()
     _scan_existing_uploads()
+
+    # Start plain HTTP dashboard server
+    config = uvicorn.Config(
+        dashboard_app, host="0.0.0.0", port=DASHBOARD_PORT,
+        log_level=LOG_LEVEL.lower(), access_log=False,
+    )
+    dashboard_server = uvicorn.Server(config)
+    dashboard_task = asyncio.create_task(dashboard_server.serve())
+
     logger.info("fujidrop server started")
-    logger.info(f"  Uploads directory: {UPLOAD_DIR}")
-    logger.info(f"  Certificates:      {CERT_DIR}")
+    logger.info(f"  Camera API (HTTPS): port 443")
+    logger.info(f"  Dashboard (HTTP):   port {DASHBOARD_PORT}")
+    logger.info(f"  Uploads directory:  {UPLOAD_DIR}")
+    logger.info(f"  Certificates:       {CERT_DIR}")
     yield
 
+    dashboard_server.should_exit = True
+    await dashboard_task
+
 app = FastAPI(title="fujidrop", docs_url=None, redoc_url=None, lifespan=lifespan)
+
+# Dashboard app — plain HTTP on a separate port, shares state with main app
+dashboard_app = FastAPI(title="fujidrop dashboard", docs_url=None, redoc_url=None)
+dashboard_router = APIRouter()
 
 # ---------------------------------------------------------------------------
 # Dashboard
 # ---------------------------------------------------------------------------
 
-@app.get("/", response_class=HTMLResponse)
+@dashboard_router.get("/", response_class=HTMLResponse)
 async def dashboard():
     uptime = _format_uptime()
     total_files = len(upload_log)
@@ -159,7 +180,7 @@ async def dashboard():
     return HTMLResponse(html)
 
 
-@app.get("/ca.crt")
+@dashboard_router.get("/ca.crt")
 async def download_ca_cert():
     ca_path = CERT_DIR / "ca.crt"
     if ca_path.exists():
@@ -167,7 +188,7 @@ async def download_ca_cert():
     return JSONResponse({"error": "CA certificate not generated yet"}, status_code=404)
 
 
-@app.get("/api/status")
+@dashboard_router.get("/api/status")
 async def api_status():
     return {
         "status": "running",
@@ -179,9 +200,16 @@ async def api_status():
     }
 
 
-@app.get("/api/uploads")
+@dashboard_router.get("/api/uploads")
 async def api_uploads():
     return {"uploads": upload_log[:100]}
+
+
+# Include dashboard routes on both apps:
+# - main app (HTTPS 443): camera can also reach the dashboard
+# - dashboard_app (HTTP 3000): browser-friendly, no cert warning
+app.include_router(dashboard_router)
+dashboard_app.include_router(dashboard_router)
 
 
 # ===================================================================

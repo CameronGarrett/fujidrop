@@ -5,6 +5,7 @@ services:
     container_name: fujidrop
     ports:
       - "443:443"
+      - "${DASHBOARD_PORT:-3000}:3000"
     volumes:
       - ${CERT_PATH:-./certs}:/certs
       - ${UPLOAD_PATH:-./uploads}:/uploads
@@ -12,5 +13,6 @@ services:
       - NAS_IP=${NAS_IP:-192.168.0.100}
       - UPLOAD_DIR=/uploads
       - CERT_DIR=/certs
+      - DASHBOARD_PORT=3000
       - LOG_LEVEL=${LOG_LEVEL:-info}
     restart: unless-stopped
