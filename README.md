@@ -178,9 +178,7 @@ prefer, but you'll need to accept the self-signed certificate warning.
    ```
 3. In the Unraid UI: **Docker** > **Compose** > **fujidrop** > **Compose Up**
 
-Certs live on the NVMe cache (appdata), uploads go to the array (parity-protected).
-DIUN will automatically pick up image updates since the compose file uses
-`ghcr.io/camerongarrett/fujidrop:latest`.
+Certs go to appdata, uploads go to wherever you point them.
 
 ## Troubleshooting
 
