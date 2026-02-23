@@ -52,6 +52,18 @@ brands with documented CA certificate loading.
 If you've confirmed a camera and firmware version, please open a PR to fill
 in the "Confirmed Firmware" column.
 
+### Firmware Updates
+
+**Check before updating.** A camera firmware update could break compatibility
+if the manufacturer changes how Frame.io C2C works — for example, adding
+certificate pinning, changing the upload protocol, or removing the ability
+to load custom root certificates. You wouldn't know until uploads stop working.
+
+Firmware rollback is generally not possible on Fujifilm, Canon, or Panasonic
+cameras. If you're on a working firmware version, there's no urgency to update.
+Check the [issues](https://github.com/CameronGarrett/framedrop/issues) before
+applying a new firmware to see if anyone has tested it.
+
 ## Prerequisites
 
 - Docker and Docker Compose
