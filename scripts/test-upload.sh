@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # ===================================================================
-#  fujidrop — Test Script
-#  Simulates a Fujifilm camera's full upload flow to verify your
-#  server is working before connecting the real camera.
+#  framedrop — Test Script
+#  Simulates a camera's full C2C upload flow to verify your
+#  server is working before connecting a real camera.
 #
 #  Usage:  ./scripts/test-upload.sh <NAS_IP>
 #  Example: ./scripts/test-upload.sh 192.168.0.100
@@ -25,7 +25,7 @@ fail() { echo -e "  ${RED}FAIL${NC}  $1"; exit 1; }
 info() { echo -e "  ${YELLOW}....${NC}  $1"; }
 
 echo ""
-echo "=== fujidrop Test ==="
+echo "=== framedrop Test ==="
 echo "    Server: $BASE"
 echo ""
 
@@ -49,7 +49,7 @@ fi
 # --- 2. Device pairing ---
 echo "[2/5] Device pairing (POST /v2/auth/device/code)"
 RESPONSE=$(curl -s --cacert "$CA" -X POST "$BASE/v2/auth/device/code" \
-    -F "client_id=test-fuji-xe5" \
+    -F "client_id=test-camera" \
     -F "client_secret=test" \
     -F "scope=asset_create offline")
 
@@ -61,7 +61,7 @@ pass "Got pairing code: $USER_CODE"
 # --- 3. Token exchange ---
 echo "[3/5] Token exchange (POST /v2/auth/token)"
 RESPONSE=$(curl -s --cacert "$CA" -X POST "$BASE/v2/auth/token" \
-    -F "client_id=test-fuji-xe5" \
+    -F "client_id=test-camera" \
     -F "client_secret=test" \
     -F "grant_type=urn:ietf:params:oauth:grant-type:device_code" \
     -F "device_code=$DEVICE_CODE")
@@ -121,10 +121,8 @@ echo -e "${GREEN}=== All tests passed ===${NC}"
 echo ""
 echo "Your server is working. Next steps:"
 echo ""
-echo "  1. Copy certs/ca.crt to your camera's SD card"
-echo "  2. On camera: Network/USB Setting > ROOT CERTIFICATE > load ca.crt"
-echo "  3. In NextDNS: Settings > Rewrites > add:  api.frame.io -> $NAS_IP"
-echo "  4. Connect camera to your home WiFi"
-echo "  5. On camera: Network/USB Setting > Frame.io > pair"
-echo "     (it will auto-approve in a few seconds)"
+echo "  1. Load certs/ca.crt onto your camera (see README for your brand)"
+echo "  2. Add DNS rewrite:  api.frame.io -> $NAS_IP"
+echo "  3. Connect camera to WiFi and pair via Frame.io C2C"
+echo "     (the server auto-approves all pairing codes)"
 echo ""

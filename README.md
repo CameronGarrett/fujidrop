@@ -1,18 +1,18 @@
-# fujidrop
+# framedrop
 
-Self-hosted Frame.io Camera-to-Cloud replacement for Fujifilm cameras.
-Your photos and videos upload straight from camera to your home server —
-no Frame.io account, no cloud, no subscription.
+Self-hosted Frame.io Camera-to-Cloud replacement. Your photos and videos
+upload straight from camera to your home server — no Frame.io account,
+no cloud, no subscription.
 
 ## How It Works
 
 ```
 Camera  --WiFi-->  api.frame.io  --DNS rewrite-->  Your server
-                   (port 443)                       (fujidrop container)
+                   (port 443)                       (framedrop container)
 ```
 
-Fujifilm cameras with Frame.io C2C support connect to `api.frame.io` over
-HTTPS to upload files. fujidrop emulates that API inside a Docker container
+Cameras with native Frame.io C2C support connect to `api.frame.io` over
+HTTPS to upload files. framedrop emulates that API inside a Docker container
 on your local network. A DNS rewrite points `api.frame.io` at your server,
 and a custom CA certificate loaded on the camera lets it trust the connection.
 
@@ -20,38 +20,51 @@ The camera thinks it's talking to Frame.io. Your files never leave your network.
 
 ## Compatible Cameras
 
-Any Fujifilm camera with native Frame.io Camera-to-Cloud support will work.
-Check that your firmware meets the minimum version where listed.
+Any camera with native Frame.io Camera-to-Cloud support and the ability to
+load a custom root certificate should work. Cameras listed below are from
+brands with documented CA certificate loading.
 
-| Camera | Min. Firmware | Notes |
-|--------|---------------|-------|
-| X-H2S | 4.00 | Needs FT-XH grip below fw 6.00 |
-| X-H2 | 2.00 | Needs FT-XH grip below fw 4.00 |
-| GFX100 II | — | |
-| GFX100S II | — | |
-| GFX100RF | — | |
-| GFX Eterna 55 | — | Cinema camera; WiFi + Ethernet |
-| X100VI | — | |
-| X-T5 | 3.01 | |
-| X-T50 | — | |
-| X-S20 | 2.01 | |
-| X-M5 | — | |
-| X-E5 | — | |
-| X-T30 III | — | |
+| Brand | Camera | Notes | Confirmed Firmware |
+|-------|--------|-------|--------------------|
+| Canon | EOS C400 | C2C added in fw 1.0.2.1 | — |
+| Canon | EOS C80 | C2C added in fw 1.0.2.1 | — |
+| Canon | EOS C50 | | — |
+| Fujifilm | GFX100 II | | — |
+| Fujifilm | GFX100S II | | — |
+| Fujifilm | GFX100RF | | — |
+| Fujifilm | GFX Eterna 55 | Cinema camera; WiFi + Ethernet | — |
+| Fujifilm | X100VI | C2C added in fw 1.30 | — |
+| Fujifilm | X-E5 | | — |
+| Fujifilm | X-H2 | Needs FT-XH grip below fw 4.00 | — |
+| Fujifilm | X-H2S | Needs FT-XH grip below fw 6.00 | — |
+| Fujifilm | X-M5 | | — |
+| Fujifilm | X-S20 | C2C added in fw 2.01 | — |
+| Fujifilm | X-T5 | C2C added in fw 3.01 | — |
+| Fujifilm | X-T30 III | | — |
+| Fujifilm | X-T50 | | — |
+| Panasonic | LUMIX GH7 | | — |
+| Panasonic | LUMIX S1II | | — |
+| Panasonic | LUMIX S1IIE | Video-oriented S1II variant | — |
+| Panasonic | LUMIX S1RII | | — |
+| Panasonic | LUMIX S5II | C2C added in fw 3.0 | — |
+| Panasonic | LUMIX S5IIX | C2C added in fw 2.0 | — |
+
+If you've confirmed a camera and firmware version, please open a PR to fill
+in the "Confirmed Firmware" column.
 
 ## Prerequisites
 
 - Docker and Docker Compose
 - DNS you can add rewrites to (NextDNS, Pi-hole, router, dnsmasq, etc.)
-- Your camera's SD card (to load the CA certificate once)
+- Your camera's memory card (to load the CA certificate once)
 
 ## Quick Start
 
 ### 1. Configure
 
 ```bash
-git clone https://github.com/CameronGarrett/fujidrop.git
-cd fujidrop
+git clone https://github.com/CameronGarrett/framedrop.git
+cd framedrop
 cp .env.example .env
 ```
 
@@ -92,12 +105,44 @@ All 5 checks should pass before connecting your real camera.
 
 ### 4. Load CA Certificate on Camera
 
-1. Copy `certs/ca.crt` to the **root** of your camera's SD card
-2. Insert the SD card into your camera
-3. On camera: **Network/USB Setting** > **ROOT CERTIFICATE**
-4. Select `ca.crt` and confirm
+Copy `certs/ca.crt` to your camera's memory card and load it as a root
+certificate. The process varies by brand:
 
-This tells the camera to trust your server's HTTPS certificate.
+#### Fujifilm
+
+1. Copy `ca.crt` to the **root** of your SD card
+2. On camera: **Network/USB Setting** > **ROOT CERTIFICATE**
+3. Select `ca.crt` and confirm
+
+Some firmware versions prefer `.pem` — try renaming to `ca.pem` if the
+camera doesn't recognize the file. Frame.io and FTP share the same root
+certificate store on Fujifilm cameras.
+
+See: [Fujifilm C2C QuickStart Guide](https://help.frame.io/en/articles/7156603-c2c-fujifilm-quickstart-guide)
+
+#### Panasonic LUMIX
+
+1. Copy `ca.crt` to the **root** of your memory card (`.pem`, `.cer`, and
+   `.crt` are all accepted)
+2. On camera: **Setup** > **Others** > **Root Certificate** > **Load**
+3. Select the certificate file
+
+Panasonic cameras can store up to 6 root certificates simultaneously.
+
+See: [Panasonic LUMIX C2C QuickStart Guide](https://help.frame.io/en/articles/9179663-c2c-panasonic-lumix-quickstart-guide)
+
+#### Canon
+
+1. Rename `ca.crt` to exactly **`ROOT.CRT`** (Canon requires this filename;
+   `ROOT.CER` and `ROOT.PEM` also work)
+2. Copy to your memory card
+3. On camera: **Network Settings** > **Connection option settings** >
+   **FTP transfer settings** > **Set root certif** > **Load root certif from card**
+
+See: [Canon C2C QuickStart Guide](https://help.frame.io/en/articles/10070093-c2c-canon-quickstart-guide)
+
+---
+
 The cert is valid for 10 years. This does not modify your camera in any
 permanent way — the certificate can be removed at any time through the same menu.
 
@@ -120,23 +165,26 @@ private IP responses.
 ### 6. Pair Camera
 
 1. Connect your camera to your home WiFi
-   - **Network/USB Setting** > **Frame.io Camera to Cloud** > **CONNECT**
-2. Start pairing:
-   - **Frame.io Camera to Cloud** > **PAIRING (Frame.io)**
-3. The camera displays a 6-digit code — after a few seconds it will
+2. Start Frame.io pairing in your camera's network settings
+   - **Fujifilm**: Network/USB Setting > Frame.io Camera to Cloud > CONNECT,
+     then PAIRING (Frame.io)
+   - **Panasonic**: Setup > Others > Frame.io > Connect
+   - **Canon**: Network Settings > Frame.io > Connect
+3. The camera displays a pairing code — after a few seconds it will
    auto-pair (the server approves all codes automatically)
-4. You should see "Connected" on the camera
+4. You should see a connected/paired status on the camera
 
 ### 7. Configure Upload Settings
 
-On the camera, under **Frame.io Camera to Cloud** > **UPLOAD SETTING**:
+Enable automatic uploads in your camera's Frame.io / C2C settings. The exact
+menu varies by brand, but generally you want:
 
-| Setting | Recommended |
-|---------|-------------|
-| AUTO IMAGE TRANSFER ORDER | ON — auto-uploads every shot |
-| SELECT FILE TYPE | Enable whichever you want: JPEG, RAW, HEIF, MOV, etc. |
-| IMAGE TRANSFER WHILE POWER OFF | ON — continues uploading after power off |
-| TRANSFER/SUSPEND | TRANSFER — starts uploading immediately |
+- **Auto transfer**: ON — uploads every shot automatically
+- **File types**: enable whichever you want (JPEG, RAW, video, etc.)
+- **Transfer while power off**: ON if available — continues uploading after
+  the camera sleeps
+
+Refer to your camera's manual or the Frame.io QuickStart guide for your brand.
 
 ## Where Files Go
 
@@ -152,9 +200,8 @@ uploads/
     └── ...
 ```
 
-Full-resolution files are uploaded — the same JPEGs, RAW (.RAF), HEIF, and
-video files written to your SD card. The camera never deletes files from the
-card; fujidrop receives copies.
+Full-resolution files are uploaded — the same files written to your memory
+card. The camera never deletes files from the card; framedrop receives copies.
 
 ## Dashboard
 
@@ -169,14 +216,14 @@ prefer, but you'll need to accept the self-signed certificate warning.
 
 ## Unraid Deployment
 
-1. Copy this project to `/boot/config/plugins/compose.manager/projects/fujidrop/`
+1. Copy this project to `/boot/config/plugins/compose.manager/projects/framedrop/`
 2. Create `.env` from the example and set your values:
    ```
    NAS_IP=192.168.0.100
-   CERT_PATH=/mnt/user/appdata/fujidrop
+   CERT_PATH=/mnt/user/appdata/framedrop
    UPLOAD_PATH=/mnt/user/data/camera-uploads
    ```
-3. In the Unraid UI: **Docker** > **Compose** > **fujidrop** > **Compose Up**
+3. In the Unraid UI: **Docker** > **Compose** > **framedrop** > **Compose Up**
 
 Certs go to appdata, uploads go to wherever you point them.
 
@@ -199,8 +246,10 @@ Certs go to appdata, uploads go to wherever you point them.
 - Clear DNS cache on your router if applicable
 
 **Camera won't load the CA certificate**
-- Make sure the file is at the root of the SD card (not in a subfolder)
-- Try renaming `ca.crt` to `ca.pem` — some firmware versions prefer `.pem`
+- Make sure the file is at the root of the memory card (not in a subfolder)
+- Check the filename requirements for your brand (Canon requires `ROOT.CRT`)
+- Verify the camera's date/time is correct (certificate validation is
+  time-dependent)
 
 **Port 443 already in use**
 
@@ -213,9 +262,9 @@ you have a few options:
   something like 3443.
 - **Reverse proxy with SNI passthrough**: if you run a reverse proxy (Nginx
   Proxy Manager, Traefik, Caddy), configure it to pass TLS connections for
-  SNI hostname `api.frame.io` through to fujidrop on an internal port,
+  SNI hostname `api.frame.io` through to framedrop on an internal port,
   while handling all other traffic normally.
-- **Dedicated IP via Docker macvlan**: give the fujidrop container its own
+- **Dedicated IP via Docker macvlan**: give the framedrop container its own
   IP address on your LAN so it gets its own port 443 without conflicting.
 
 Find what's using port 443: `ss -tlnp | grep 443`
@@ -223,14 +272,14 @@ Find what's using port 443: `ss -tlnp | grep 443`
 ## Removing / Reverting
 
 1. Delete the DNS rewrite in your DNS settings
-2. On camera: **Network/USB Setting** > **ROOT CERTIFICATE** > remove
+2. Remove the root certificate from your camera
 3. `docker compose down`
 
 No permanent changes are made to your camera. You're back to stock in 30 seconds.
 
 ## Technical Overview
 
-fujidrop emulates these Frame.io C2C API endpoints:
+framedrop emulates these Frame.io C2C API endpoints:
 
 | Endpoint | Purpose |
 |----------|---------|

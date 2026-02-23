@@ -31,7 +31,7 @@ else
         -sha256 \
         -days 3650 \
         -out "$CERT_DIR/ca.crt" \
-        -subj "/CN=FujiDrop CA"
+        -subj "/CN=FrameDrop CA"
 fi
 
 # --- Server certificate for api.frame.io ---

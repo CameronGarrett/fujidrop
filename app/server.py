@@ -1,9 +1,8 @@
 """
-fujidrop - Self-hosted Frame.io Camera-to-Cloud emulator.
+framedrop - Self-hosted Frame.io Camera-to-Cloud emulator.
 
-Emulates the Frame.io C2C API so Fujifilm cameras (and other C2C-compatible
-devices) can upload photos and videos directly to your home server without
-a Frame.io account.
+Emulates the Frame.io C2C API so cameras with native C2C support can upload
+photos and videos directly to your home server without a Frame.io account.
 """
 
 import os
@@ -35,7 +34,7 @@ logging.basicConfig(
     format="%(asctime)s  %(levelname)-8s  %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-logger = logging.getLogger("fujidrop")
+logger = logging.getLogger("framedrop")
 
 # ---------------------------------------------------------------------------
 # In-memory state
@@ -68,7 +67,7 @@ async def lifespan(app: FastAPI):
     dashboard_server = uvicorn.Server(config)
     dashboard_task = asyncio.create_task(dashboard_server.serve())
 
-    logger.info("fujidrop server started")
+    logger.info("framedrop server started")
     logger.info(f"  Camera API (HTTPS): port 443")
     logger.info(f"  Dashboard (HTTP):   port {DASHBOARD_PORT}")
     logger.info(f"  Uploads directory:  {UPLOAD_DIR}")
@@ -78,10 +77,10 @@ async def lifespan(app: FastAPI):
     dashboard_server.should_exit = True
     await dashboard_task
 
-app = FastAPI(title="fujidrop", docs_url=None, redoc_url=None, lifespan=lifespan)
+app = FastAPI(title="framedrop", docs_url=None, redoc_url=None, lifespan=lifespan)
 
 # Dashboard app — plain HTTP on a separate port, shares state with main app
-dashboard_app = FastAPI(title="fujidrop dashboard", docs_url=None, redoc_url=None)
+dashboard_app = FastAPI(title="framedrop dashboard", docs_url=None, redoc_url=None)
 dashboard_router = APIRouter()
 
 # ---------------------------------------------------------------------------
@@ -120,7 +119,7 @@ async def dashboard():
     html = f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>fujidrop</title>
+<title>framedrop</title>
 <style>
   * {{ margin:0; padding:0; box-sizing:border-box; }}
   body {{ font-family: -apple-system, system-ui, sans-serif; background:#111; color:#e5e5e5; padding:2rem; }}
@@ -141,7 +140,7 @@ async def dashboard():
   .muted {{ color:#888; font-size:0.85rem; }}
 </style>
 </head><body>
-<h1>fujidrop</h1>
+<h1>framedrop</h1>
 <div class="status">
   <div class="card">
     <div class="label">Server</div>
@@ -176,7 +175,7 @@ async def dashboard():
   </table>
 </div>
 
-<p class="muted" style="margin-top:2rem">fujidrop &mdash; self-hosted Frame.io C2C emulator</p>
+<p class="muted" style="margin-top:2rem">framedrop &mdash; self-hosted Frame.io C2C emulator</p>
 </body></html>"""
     return HTMLResponse(html)
 
@@ -285,10 +284,10 @@ async def auth_token(request: Request):
 @app.get("/v2/me")
 async def me():
     return JSONResponse({
-        "id": "fujidrop-user",
-        "name": "fujidrop",
-        "email": "local@fujidrop",
-        "account_id": "fujidrop-account",
+        "id": "framedrop-user",
+        "name": "framedrop",
+        "email": "local@framedrop",
+        "account_id": "framedrop-account",
     })
 
 
@@ -296,7 +295,7 @@ async def me():
 async def account(account_id: str):
     return JSONResponse({
         "id": account_id,
-        "name": "fujidrop",
+        "name": "framedrop",
     })
 
 

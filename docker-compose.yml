@@ -1,8 +1,8 @@
 services:
-  fujidrop:
-    image: ghcr.io/camerongarrett/fujidrop:latest
+  framedrop:
+    image: ghcr.io/camerongarrett/framedrop:latest
     # build: .  # uncomment to build from source instead
-    container_name: fujidrop
+    container_name: framedrop
     ports:
       - "443:443"
       - "${DASHBOARD_PORT:-3000}:3000"
