@@ -1,0 +1,15 @@
+services:
+  fujidrop:
+    build: .
+    container_name: fujidrop
+    ports:
+      - "443:443"
+    volumes:
+      - ./certs:/certs
+      - ./uploads:/uploads
+    environment:
+      - NAS_IP=${NAS_IP:-192.168.0.100}
+      - UPLOAD_DIR=/uploads
+      - CERT_DIR=/certs
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    restart: unless-stopped
