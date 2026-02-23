@@ -46,6 +46,7 @@ tokens: dict = {}
 assets: dict = {}
 upload_log: list = []          # recent uploads shown on dashboard
 server_start: datetime = None  # set in lifespan
+_assembly_lock = asyncio.Lock()
 
 # ---------------------------------------------------------------------------
 # App
@@ -307,15 +308,15 @@ async def create_asset(request: Request):
     body = await request.json()
 
     asset_id = str(uuid.uuid4())
-    name = body.get("name", f"unknown_{asset_id}")
+    name = Path(body.get("name", f"unknown_{asset_id}")).name or f"unknown_{asset_id}"
     filesize = body.get("filesize")
     filetype = body.get("filetype", "application/octet-stream")
     is_realtime = body.get("is_realtime_upload", False)
 
-    # Calculate number of upload parts
+    # Calculate number of upload parts (cap at 4000 ≈ 100 GB)
     chunk_size = 25 * 1024 * 1024   # 25 MiB per part
     if filesize and not is_realtime:
-        num_parts = max(1, (filesize + chunk_size - 1) // chunk_size)
+        num_parts = min(4000, max(1, (filesize + chunk_size - 1) // chunk_size))
     else:
         num_parts = 1
 
@@ -357,13 +358,14 @@ async def create_realtime_parts(asset_id: str, request: Request):
         return JSONResponse({"error": "asset not found"}, status_code=404)
 
     asset = assets[asset_id]
-    next_part = max(asset["parts_received"].keys(), default=0) + 1
+    next_part = asset.get("_next_realtime_part", asset["num_parts"] + 1)
     batch = 5
 
     upload_urls = [
         f"https://api.frame.io/upload/{asset_id}?part={next_part + i}"
         for i in range(batch)
     ]
+    asset["_next_realtime_part"] = next_part + batch
     asset["num_parts"] = next_part + batch - 1
 
     return JSONResponse({"upload_urls": upload_urls})
@@ -374,7 +376,10 @@ async def create_realtime_parts(asset_id: str, request: Request):
 @app.put("/upload/{asset_id}")
 async def upload_part(asset_id: str, request: Request):
     """Receive a file chunk from the camera."""
-    part = int(request.query_params.get("part", 1))
+    try:
+        part = int(request.query_params.get("part", 1))
+    except (ValueError, TypeError):
+        return Response(status_code=400)
 
     if asset_id not in assets:
         logger.warning(f"Upload for unknown asset {asset_id}")
@@ -401,7 +406,10 @@ async def upload_part(asset_id: str, request: Request):
 
     # Assemble when all parts are in (non-realtime only)
     if not asset["is_realtime"] and len(asset["parts_received"]) >= asset["num_parts"]:
-        _assemble_file(asset_id)
+        async with _assembly_lock:
+            await asyncio.get_event_loop().run_in_executor(
+                None, _assemble_file, asset_id
+            )
 
     return Response(status_code=200)
 
@@ -411,7 +419,10 @@ async def complete_realtime_upload(asset_id: str, request: Request):
     """Signal that a real-time upload is finished."""
     if asset_id in assets:
         assets[asset_id]["num_parts"] = len(assets[asset_id]["parts_received"])
-        _assemble_file(asset_id)
+        async with _assembly_lock:
+            await asyncio.get_event_loop().run_in_executor(
+                None, _assemble_file, asset_id
+            )
     return Response(status_code=200)
 
 

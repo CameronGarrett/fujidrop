@@ -20,14 +20,19 @@ echo "  NAS IP: $NAS_IP"
 echo "  Output: $CERT_DIR"
 
 # --- CA (Certificate Authority) ---
-openssl genrsa -out "$CERT_DIR/ca.key" 4096 2>/dev/null
+# Reuse existing CA if present (avoids invalidating the camera's loaded cert)
+if [ -f "$CERT_DIR/ca.crt" ] && [ -f "$CERT_DIR/ca.key" ]; then
+    echo "  Reusing existing CA certificate"
+else
+    openssl genrsa -out "$CERT_DIR/ca.key" 4096 2>/dev/null
 
-openssl req -new -x509 \
-    -key "$CERT_DIR/ca.key" \
-    -sha256 \
-    -days 3650 \
-    -out "$CERT_DIR/ca.crt" \
-    -subj "/CN=FujiDrop CA"
+    openssl req -new -x509 \
+        -key "$CERT_DIR/ca.key" \
+        -sha256 \
+        -days 3650 \
+        -out "$CERT_DIR/ca.crt" \
+        -subj "/CN=FujiDrop CA"
+fi
 
 # --- Server certificate for api.frame.io ---
 openssl genrsa -out "$CERT_DIR/server.key" 2048 2>/dev/null

@@ -1,0 +1,6 @@
+.git
+.env
+certs/
+uploads/
+*.md
+LICENSE
