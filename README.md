@@ -24,30 +24,30 @@ Any camera with native Frame.io Camera-to-Cloud support and the ability to
 load a custom root certificate should work. Cameras listed below are from
 brands with documented CA certificate loading.
 
-| Brand | Camera | Notes | Confirmed Firmware |
-|-------|--------|-------|--------------------|
-| Canon | EOS C400 | C2C added in fw 1.0.2.1 | — |
-| Canon | EOS C80 | C2C added in fw 1.0.2.1 | — |
-| Canon | EOS C50 | | — |
-| Fujifilm | GFX100 II | | — |
-| Fujifilm | GFX100S II | | — |
-| Fujifilm | GFX100RF | | — |
-| Fujifilm | GFX Eterna 55 | Cinema camera; WiFi + Ethernet | — |
-| Fujifilm | X100VI | C2C added in fw 1.30 | — |
-| Fujifilm | X-E5 | | — |
-| Fujifilm | X-H2 | Needs FT-XH grip below fw 4.00 | — |
-| Fujifilm | X-H2S | Needs FT-XH grip below fw 6.00 | — |
-| Fujifilm | X-M5 | | — |
-| Fujifilm | X-S20 | C2C added in fw 2.01 | — |
-| Fujifilm | X-T5 | C2C added in fw 3.01 | — |
-| Fujifilm | X-T30 III | | — |
-| Fujifilm | X-T50 | | — |
-| Panasonic | LUMIX GH7 | | — |
-| Panasonic | LUMIX S1II | | — |
-| Panasonic | LUMIX S1IIE | Video-oriented S1II variant | — |
-| Panasonic | LUMIX S1RII | | — |
-| Panasonic | LUMIX S5II | C2C added in fw 3.0 | — |
-| Panasonic | LUMIX S5IIX | C2C added in fw 2.0 | — |
+| Brand | Camera | Confirmed Firmware | Notes |
+|-------|--------|--------------------|-------|
+| Canon | EOS C400 | — | C2C added in fw 1.0.2.1 |
+| Canon | EOS C80 | — | C2C added in fw 1.0.2.1 |
+| Canon | EOS C50 | — | |
+| Fujifilm | GFX100 II | — | |
+| Fujifilm | GFX100S II | — | |
+| Fujifilm | GFX100RF | — | |
+| Fujifilm | GFX Eterna 55 | — | Cinema camera; WiFi + Ethernet |
+| Fujifilm | X100VI | — | C2C added in fw 1.30 |
+| Fujifilm | X-E5 | — | |
+| Fujifilm | X-H2 | — | Needs FT-XH grip below fw 4.00 |
+| Fujifilm | X-H2S | — | Needs FT-XH grip below fw 6.00 |
+| Fujifilm | X-M5 | — | |
+| Fujifilm | X-S20 | — | C2C added in fw 2.01 |
+| Fujifilm | X-T5 | — | C2C added in fw 3.01 |
+| Fujifilm | X-T30 III | — | |
+| Fujifilm | X-T50 | — | |
+| Panasonic | LUMIX GH7 | — | |
+| Panasonic | LUMIX S1II | — | |
+| Panasonic | LUMIX S1IIE | — | Video-oriented S1II variant |
+| Panasonic | LUMIX S1RII | — | |
+| Panasonic | LUMIX S5II | — | C2C added in fw 3.0 |
+| Panasonic | LUMIX S5IIX | — | C2C added in fw 2.0 |
 
 If you've confirmed a camera and firmware version, please open a PR to fill
 in the "Confirmed Firmware" column.
