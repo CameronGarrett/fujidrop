@@ -6,7 +6,7 @@ services:
     ports:
       - "443:443"
     volumes:
-      - ${APPDATA_PATH:-./certs}:/certs
+      - ${CERT_PATH:-./certs}:/certs
       - ${UPLOAD_PATH:-./uploads}:/uploads
     environment:
       - NAS_IP=${NAS_IP:-192.168.0.100}
@@ -14,5 +14,3 @@ services:
       - CERT_DIR=/certs
       - LOG_LEVEL=${LOG_LEVEL:-info}
     restart: unless-stopped
-    labels:
-      - net.unraid.docker.icon=https://raw.githubusercontent.com/CameronGarrett/fujidrop/main/icon.png

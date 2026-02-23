@@ -55,16 +55,15 @@ cd fujidrop
 cp .env.example .env
 ```
 
-Edit `.env` and set your NAS IP and volume paths:
+Edit `.env` and set at minimum your server's IP:
 
 ```
 NAS_IP=192.168.0.100
-APPDATA_PATH=/mnt/user/appdata/fujidrop    # certs + config (Unraid)
-UPLOAD_PATH=/mnt/user/data/camera-uploads  # photos land here (Unraid)
 ```
 
-For non-Unraid setups, the defaults (`./certs` and `./uploads`) work fine.
-Port 443 must be available on the host (the camera connects to standard HTTPS).
+Volume paths default to `./certs` and `./uploads` in the project directory.
+See `.env.example` for all options. Port 443 must be available on the host
+(the camera connects to standard HTTPS).
 
 ### 2. Build and Start
 
@@ -171,7 +170,7 @@ certificate is also available for download at `https://YOUR_NAS_IP/ca.crt`.
 2. Create `.env` from the example and set your values:
    ```
    NAS_IP=192.168.0.100
-   APPDATA_PATH=/mnt/user/appdata/fujidrop
+   CERT_PATH=/mnt/user/appdata/fujidrop
    UPLOAD_PATH=/mnt/user/data/camera-uploads
    ```
 3. In the Unraid UI: **Docker** > **Compose** > **fujidrop** > **Compose Up**
